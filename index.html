@@ -108,6 +108,11 @@
     style="display: none; padding: 12px; border-radius: var(--radius); margin-bottom: 2rem; font-size: 14px; line-height: 1.6;">
     <div id="feedback-status" style="font-weight: 500; margin-bottom: 6px;"></div>
     <div id="feedback-text" style="font-size: 13px;"></div>
+
+    <button id="clear-answer-btn" onclick="clearAnswer()"
+      style="margin-top: 10px; padding: 6px 14px; font-size: 13px; border: 0.5px solid var(--border-strong); background-color: transparent; border-radius: var(--radius); cursor: pointer;">
+      Clear answer
+    </button>
   </div>
 
   <div style="display: flex; gap: 8px; justify-content: space-between; margin-top: 1rem;">
@@ -1110,7 +1115,23 @@
     }
     submitted = true;
     answers[currentIndex] = selected;
-    saveCurrentProgress(); // <-- add this
+    saveCurrentProgress();
+    render();
+  }
+
+  function clearAnswer() {
+    // Only allow clearing if an answer was already submitted
+    if (!submitted) return;
+
+    // Remove the stored answer for the current question
+    answers[currentIndex] = null;
+    selected = null;
+    submitted = false;
+
+    // Save the updated progress to localStorage
+    saveCurrentProgress();
+
+    // Re-render the question
     render();
   }
 
@@ -1118,7 +1139,7 @@
     currentIndex = idx;
     selected = answers[idx];
     submitted = answers[idx] !== null;
-    saveCurrentProgress(); // <-- add this
+    saveCurrentProgress();
     render();
   }
 
@@ -1127,7 +1148,7 @@
       currentIndex++;
       selected = answers[currentIndex];
       submitted = answers[currentIndex] !== null;
-      saveCurrentProgress(); // <-- add this
+      saveCurrentProgress();
       render();
     }
   }
@@ -1137,7 +1158,7 @@
       currentIndex--;
       selected = answers[currentIndex];
       submitted = answers[currentIndex] !== null;
-      saveCurrentProgress(); // <-- add this
+      saveCurrentProgress();
       render();
     }
   }
