@@ -1153,7 +1153,7 @@
     // Check if complete
     const allAnswered = answers.every(a => a !== null);
     const completeSection = document.getElementById('complete-section');
-    if (allAnswered && currentIndex === questions.length - 1 && submitted) {
+    if (allAnswered) {
       completeSection.style.display = 'block';
       const finalScore = answers.reduce((acc, a, i) => acc + (a === questions[i].correct ? 1 : 0), 0);
       document.getElementById('final-score').textContent = `${finalScore}/${questions.length}`;
