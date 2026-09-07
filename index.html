@@ -1040,6 +1040,81 @@
       .replace(/'/g, "&#039;");
   }
 
+  // ========== CODE FORMATTING ==========
+  const codeSnippetMap = new Map(); // key -> raw code
+  let codeSnippetCounter = 0;
+
+  function unescapeHtml(escaped) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = escaped;
+    return textarea.value;
+  }
+
+  function copyCodeSnippet(key, btn) {
+    const rawCode = codeSnippetMap.get(key);
+    if (!rawCode) return;
+
+    const originalHTML = btn.innerHTML;
+
+    const doCopy = () => {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(rawCode).catch(() => fallbackCopy(rawCode));
+      } else {
+        fallbackCopy(rawCode);
+      }
+      // Show check icon
+      btn.innerHTML = CHECK_ICON_SVG;
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+      }, 1200);
+    };
+
+    doCopy();
+  }
+
+  function createCopyButtonHTMLNoNewlines(key) {
+    const copyIcon = COPY_ICON_SVG.replace(/\n/g, '');
+    return `<button onclick="copyCodeSnippet('${key}', this)" style="padding: 4px; width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #6b7280; transition: color 0.2s;" title="Copy code">${copyIcon}</button>`;
+  }
+
+  function formatTextWithCode(text) {
+    let escaped = escapeHtml(text);
+
+    // Handle triple backtick code blocks
+    escaped = escaped.replace(/```([\s\S]*?)```/g, function (match, code) {
+      const rawCode = unescapeHtml(code);
+      const key = `code_${codeSnippetCounter++}`;
+      codeSnippetMap.set(key, rawCode);
+
+      let language = '';
+      const langMatch = rawCode.match(/^([a-zA-Z0-9_+-]+)\s*/);
+      if (langMatch) {
+        language = langMatch[1];
+        const codeWithoutLang = rawCode.replace(/^[^\n]*\n?/, '').trimStart();
+        code = escapeHtml(codeWithoutLang);
+      } else {
+        code = escapeHtml(rawCode);
+      }
+
+      // Single-line return to prevent <br> insertion
+      return `<div style="background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); margin: 8px 0; overflow: hidden;"><div style="display: flex; justify-content: space-between; align-items: center; height: 32px; background: var(--surface-0); padding: 0;"><span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 12px; display: flex; align-items: center; height: 32px;">${escapeHtml(language || 'code')}</span>${createCopyButtonHTMLNoNewlines(key)}</div><pre style="margin: 0; padding: 12px; overflow-x: auto; font-size: 13px; line-height: 1.5; white-space: pre; background: var(--surface-1); border-top: 0.5px solid var(--border);"><code>${code}</code></pre></div>`;
+    });
+
+    // Handle inline code
+    escaped = escaped.replace(/`([^`]+)`/g, '<code style="background: var(--surface-1); padding: 2px 4px; border-radius: 4px; font-size: 13px;">$1</code>');
+
+    // Replace newlines with <br> outside of <pre> blocks
+    const parts = escaped.split(/(<pre>[\s\S]*?<\/pre>)/g);
+    const processed = parts.map(part => {
+      if (part.startsWith('<pre>')) {
+        return part;
+      } else {
+        return part.replace(/\n/g, '<br>');
+      }
+    });
+    return processed.join('');
+  }
+
   // ========== COPY QUESTION ==========
   const COPY_ICON_SVG = `
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1264,7 +1339,7 @@
       feedbackSection.style.backgroundColor = isCorrect ? 'var(--bg-success)' : 'var(--bg-danger)';
       feedbackSection.style.color = isCorrect ? 'var(--text-success)' : 'var(--text-danger)';
       document.getElementById('feedback-status').textContent = isCorrect ? 'Correct' : 'Incorrect';
-      document.getElementById('feedback-text').textContent = current.explanation;
+      document.getElementById('feedback-text').innerHTML = formatTextWithCode(current.explanation);
     } else {
       feedbackSection.style.display = 'none';
     }
