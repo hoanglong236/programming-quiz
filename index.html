@@ -1278,7 +1278,7 @@
 
     // Update topic and question
     document.getElementById('topic-tag').textContent = current.topic;
-    document.getElementById('question-text').textContent = current.question;
+    document.getElementById('question-text').innerHTML = formatTextWithCode(current.question);
 
     // Update flag button icon and title
     const flagBtn = document.getElementById('flag-btn');
@@ -1314,7 +1314,7 @@
       return `
         <label style="display: flex; align-items: center; padding: 12px; border: 0.5px solid ${borderColor}; border-radius: var(--radius); cursor: ${submitted ? 'default' : 'pointer'}; background-color: ${bgColor}; opacity: ${opacity};" onclick="selectOption(${idx})">
           <input type="radio" name="quiz-option" ${isSelected ? 'checked' : ''} ${submitted ? 'disabled' : ''} style="margin-right: 12px;" />
-          <span style="font-size: 14px; flex: 1;">${escapeHtml(opt)}</span>
+          <span style="font-size: 14px; flex: 1;">${formatTextWithCode(opt)}</span>
           ${checkmark ? `<span style="margin-left: auto; font-weight: bold; ${isCorrect ? 'color: var(--text-success)' : 'color: var(--text-danger)'}">${checkmark}</span>` : ''}
         </label>
       `;
